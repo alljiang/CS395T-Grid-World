@@ -1,0 +1,166 @@
+MODULE main
+
+VAR
+    agent_row : 0..4;
+    agent_col : 0..4;
+    obstacle_row : 0..4;
+    obstacle_col : 0..4;
+    gate1_row : 0..4;
+    gate1_col : 0..4;
+    gate1_dir : {up, down, left, right};
+    gate1_open : boolean;
+    gate2_row : 0..4;
+    gate2_col : 0..4;
+    gate2_dir : {up, down, left, right};
+    gate2_open : boolean;
+
+    -- control signals
+    up_blocked : boolean;
+    left_blocked : boolean;
+    down_blocked : boolean;
+    up_gate1_blocked : boolean;
+    down_gate1_blocked : boolean;
+    left_gate1_blocked : boolean;
+    right_gate1_blocked : boolean;
+    up_gate2_blocked : boolean;
+    down_gate2_blocked : boolean;
+    left_gate2_blocked : boolean;
+    right_gate2_blocked : boolean;
+
+    navigating_around_obstacle : boolean;
+
+    go_up : boolean;
+    go_left : boolean;
+    go_down : boolean;
+
+-- agent should reach the goal
+LTLSPEC F G (agent_row = 0 & agent_col = 0)
+
+-- only one go signal can be true at a time
+LTLSPEC G (go_up -> !go_left & !go_down)
+LTLSPEC G (go_left -> !go_up & !go_down)
+LTLSPEC G (go_down -> !go_up & !go_left)
+
+-- agent should be in bounds at all times and not collide with obstacle
+LTLSPEC G (agent_row >= 0 & agent_row <= 4 & agent_col >= 0 & agent_col <= 4)
+LTLSPEC G !(agent_row = obstacle_row & agent_col = obstacle_col)
+
+-- gates must be different
+JUSTICE !(gate1_row = gate2_row & gate1_col = gate2_col & gate1_dir = gate2_dir)
+JUSTICE !(gate1_row - 1 = gate2_row & gate1_col = gate2_col & gate1_dir = up & gate2_dir = down)
+JUSTICE !(gate1_row + 1 = gate2_row & gate1_col = gate2_col & gate1_dir = down & gate2_dir = up)
+JUSTICE !(gate1_row = gate2_row & gate1_col - 1 = gate2_col & gate1_dir = left & gate2_dir = right)
+JUSTICE !(gate1_row = gate2_row & gate1_col + 1 = gate2_col & gate1_dir = right & gate2_dir = left)
+
+-- gates should be open infinitely often
+JUSTICE gate1_open = TRUE
+JUSTICE gate2_open = TRUE
+
+-- obstacle must not be at the start or end
+JUSTICE !(obstacle_row = 0 & obstacle_col = 0)
+JUSTICE !(obstacle_row = 4 & obstacle_col = 4)
+
+ASSIGN
+    init(agent_row) := 4;
+    init(agent_col) := 4;
+    next(obstacle_row) := obstacle_row;
+    next(obstacle_col) := obstacle_col;
+    next(gate1_row) := gate1_row;
+    next(gate1_col) := gate1_col;
+    next(gate1_dir) := gate1_dir;
+    next(gate2_row) := gate2_row;
+    next(gate2_col) := gate2_col;
+    next(gate2_dir) := gate2_dir;
+    init(navigating_around_obstacle) := FALSE;
+
+    up_blocked := agent_row = 0 | (agent_row = (obstacle_row + 1) & agent_col = obstacle_col);
+    left_blocked := agent_col = 0 | (agent_col = (obstacle_col + 1) & agent_row = obstacle_row);
+    down_blocked := agent_row = 4 | (agent_row = (obstacle_row - 1) & agent_col = obstacle_col);
+
+    up_gate1_blocked := !gate1_open & (
+        (agent_row = gate1_row & agent_col = gate1_col & gate1_dir = up) |
+        (agent_row = (gate1_row + 1) & agent_col = gate1_col & gate1_dir = down)
+    );
+    down_gate1_blocked := !gate1_open & (
+        (agent_row = gate1_row & agent_col = gate1_col & gate1_dir = down) |
+        (agent_row = (gate1_row - 1) & agent_col = gate1_col & gate1_dir = up)
+    );
+    left_gate1_blocked := !gate1_open & (
+        (agent_row = gate1_row & agent_col = gate1_col & gate1_dir = left) |
+        (agent_row = gate1_row & agent_col = (gate1_col + 1) & gate1_dir = right)
+    );
+    right_gate1_blocked := !gate1_open & (
+        (agent_row = gate1_row & agent_col = gate1_col & gate1_dir = right) |
+        (agent_row = gate1_row & agent_col = (gate1_col - 1) & gate1_dir = left)
+    );
+
+    up_gate2_blocked := !gate2_open & (
+        (agent_row = gate2_row & agent_col = gate2_col & gate2_dir = up) |
+        (agent_row = (gate2_row + 1) & agent_col = gate2_col & gate2_dir = down)
+    );
+    down_gate2_blocked := !gate2_open & (
+        (agent_row = gate2_row & agent_col = gate2_col & gate2_dir = down) |
+        (agent_row = (gate2_row - 1) & agent_col = gate2_col & gate2_dir = up)
+    );
+    left_gate2_blocked := !gate2_open & (
+        (agent_row = gate2_row & agent_col = gate2_col & gate2_dir = left) |
+        (agent_row = gate2_row & agent_col = (gate2_col + 1) & gate2_dir = right)
+    );
+    right_gate2_blocked := !gate2_open & (
+        (agent_row = gate2_row & agent_col = gate2_col & gate2_dir = right) |
+        (agent_row = gate2_row & agent_col = (gate2_col - 1) & gate2_dir = left)
+    );
+    
+
+    next(navigating_around_obstacle) :=
+    case
+        up_blocked & left_blocked : TRUE;
+        !left_blocked & !left_gate1_blocked & !left_gate2_blocked : FALSE;
+        TRUE : navigating_around_obstacle;
+    esac;
+
+    go_up := 
+    case
+        agent_row = 0 & agent_col = 0 : FALSE;
+        navigating_around_obstacle : FALSE;
+        !up_blocked : TRUE;
+        TRUE : FALSE;
+    esac;
+
+    go_left := 
+    case
+        agent_row = 0 & agent_col = 0 : FALSE;
+        go_up : FALSE;
+        !left_blocked : TRUE;
+        TRUE : FALSE;
+    esac;
+
+    go_down := 
+    case
+        agent_row = 0 & agent_col = 0 : FALSE;
+        go_up | go_left : FALSE;
+        !down_blocked : TRUE;
+        TRUE : FALSE;
+    esac;
+
+    next(agent_row) := 
+    case
+        go_up & (up_blocked | up_gate1_blocked | up_gate2_blocked) : agent_row;
+        go_down & (down_blocked | down_gate1_blocked | down_gate2_blocked) : agent_row;
+
+        -- go up/down and gate blocked
+
+        go_up & agent_row > 0 : agent_row - 1;
+        go_down & agent_row < 4 : agent_row + 1;
+        TRUE : agent_row;
+    esac;
+
+    next(agent_col) := 
+    case
+        go_left & (left_blocked | left_gate1_blocked | left_gate2_blocked) : agent_col;
+
+        -- go left and gate blocked
+
+        go_left & agent_col > 0 : agent_col - 1;
+        TRUE : agent_col;
+    esac;

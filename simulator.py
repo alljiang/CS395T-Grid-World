@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 
 class Direction(Enum):
     UP = 1
@@ -16,10 +17,16 @@ GRID_WORLD_DIMENSIONS = (5, 5) # (width, height)
 START_LOCATION = (GRID_WORLD_DIMENSIONS[0] - 1, GRID_WORLD_DIMENSIONS[1] - 1)
 END_LOCATION = (0, 0)
 NUM_OBSTACLES = 1
-OBSTACLE_LOCATIONS = [(2, 2)]
+OBSTACLE_LOCATIONS = [(0, 1)]
 NUM_GATES = 2
-GATE_LOCATIONS = [((1, 1), Direction.DOWN), ((2, 3), Direction.RIGHT)]
-# GATE_LOCATIONS = [((2, 1), Direction.UP), ((2, 4), Direction.LEFT)]
+GATE_PROBABILITY_OPEN = 0.2
+GATE_PROBABILITY_CLOSE = 0.9
+# GATE_LOCATIONS = [((1, 1), Direction.DOWN), ((2, 3), Direction.RIGHT)]
+GATE_LOCATIONS = [((2, 4), Direction.UP), ((0, 2), Direction.RIGHT)]
+
+COLOR_RED = '\033[91m'
+COLOR_GREEN = '\033[92m'
+COLOR_END = '\033[0m'
 
 class Simulator:
 
@@ -30,9 +37,13 @@ class Simulator:
     def reset(self):
         self.agent_location = START_LOCATION
         self.gate_states = [GateState.CLOSED] * NUM_GATES
+        self.obstacle_locations = OBSTACLE_LOCATIONS
+        self.breadcrumbs = [[False for x in range(GRID_WORLD_DIMENSIONS[1])] for y in range(GRID_WORLD_DIMENSIONS[0])]
+        self.breadcrumbs[START_LOCATION[0]][START_LOCATION[1]] = True
 
     def print_grid(self):
         # print header
+        print("=====================================")
         print('    ', end='')
         for c in range(GRID_WORLD_DIMENSIONS[1]):
             print(c, end='   ')
@@ -50,13 +61,16 @@ class Simulator:
                 gate_bottom_state_list.append(gate_bottom_state)
 
                 if (r, c) == self.agent_location:
-                    print('A', end='')
+                    print(COLOR_GREEN + 'A' + COLOR_END, end='')
                 elif (r, c) == END_LOCATION:
                     print('E', end='')
-                elif (r, c) in OBSTACLE_LOCATIONS:
+                elif (r, c) in self.obstacle_locations:
                     print('B', end='')
                 else:
-                    print('O', end='')
+                    if self.breadcrumbs[r][c]:
+                        print(COLOR_RED + 'O' + COLOR_END, end='')
+                    else:
+                        print('O', end='')
                 
                 if gate_right_state == GateState.CLOSED:
                     print(' ║ ', end='')
@@ -66,7 +80,7 @@ class Simulator:
                     print('   ', end='')
 
             print()
-            print('    ', end='')
+            print('   ', end='')
 
             for c in range(GRID_WORLD_DIMENSIONS[1]):
                 if gate_bottom_state_list[c] == GateState.CLOSED:
@@ -74,7 +88,7 @@ class Simulator:
                 elif gate_bottom_state_list[c] == GateState.OPEN:
                     print('╬╬╬', end='')
                 else:
-                    print('   ', end='')
+                    print('    ', end='')
 
             print()
 
@@ -116,7 +130,7 @@ class Simulator:
             new_location[1] < 0 or new_location[1] >= GRID_WORLD_DIMENSIONS[1]:
             print("Invalid move: out of bounds")
             exit(1)
-        if new_location in OBSTACLE_LOCATIONS:
+        if new_location in self.obstacle_locations:
             print("Invalid move: obstacle")
             exit(1)
 
@@ -125,3 +139,19 @@ class Simulator:
         if gate_state == GateState.CLOSED:
             print("Invalid move: gate in the way")
             exit(1)
+
+        # update the agent location
+        self.agent_location = new_location
+        self.breadcrumbs[new_location[0]][new_location[1]] = True
+
+        # determine if the gate should open or close
+        for gate_index in range(len(GATE_LOCATIONS)):
+            if self.gate_states[gate_index] == GateState.OPEN:
+                if random.random() < GATE_PROBABILITY_CLOSE:
+                    self.gate_states[gate_index] = GateState.CLOSED
+            elif self.gate_states[gate_index] == GateState.CLOSED:
+                if random.random() < GATE_PROBABILITY_OPEN:
+                    self.gate_states[gate_index] = GateState.OPEN
+    
+    def agent_is_at_end(self):
+        return self.agent_location == END_LOCATION
