@@ -17,29 +17,56 @@ GRID_WORLD_DIMENSIONS = (5, 5) # (width, height)
 START_LOCATION = (GRID_WORLD_DIMENSIONS[0] - 1, GRID_WORLD_DIMENSIONS[1] - 1)
 END_LOCATION = (0, 0)
 NUM_OBSTACLES = 1
-OBSTACLE_LOCATIONS = [(0, 1)]
 NUM_GATES = 2
 GATE_PROBABILITY_OPEN = 0.2
 GATE_PROBABILITY_CLOSE = 0.9
-# GATE_LOCATIONS = [((1, 1), Direction.DOWN), ((2, 3), Direction.RIGHT)]
-GATE_LOCATIONS = [((2, 4), Direction.UP), ((0, 2), Direction.RIGHT)]
+OBSTACLE_LOCATIONS = [(1, 0)]
+GATE_LOCATIONS = [((0, 2), Direction.RIGHT), ((0, 4), Direction.DOWN)]
 
 COLOR_RED = '\033[91m'
 COLOR_GREEN = '\033[92m'
 COLOR_END = '\033[0m'
 
-class Simulator:
+RANDOMIZE = True
+# RANDOMIZE = False
 
-    def __init__(self):
-        self.reset()
-        pass
+class Simulator:
     
     def reset(self):
         self.agent_location = START_LOCATION
         self.gate_states = [GateState.CLOSED] * NUM_GATES
         self.obstacle_locations = OBSTACLE_LOCATIONS
+        self.gate_locations = GATE_LOCATIONS
         self.breadcrumbs = [[False for x in range(GRID_WORLD_DIMENSIONS[1])] for y in range(GRID_WORLD_DIMENSIONS[0])]
         self.breadcrumbs[START_LOCATION[0]][START_LOCATION[1]] = True
+
+        if RANDOMIZE:
+            self.randomize()
+
+    def randomize(self):
+        obstacle_location = (random.randint(0, GRID_WORLD_DIMENSIONS[0] - 1), random.randint(0, GRID_WORLD_DIMENSIONS[1] - 1))
+        while obstacle_location == START_LOCATION or obstacle_location == END_LOCATION:
+            obstacle_location = (random.randint(0, GRID_WORLD_DIMENSIONS[0] - 1), random.randint(0, GRID_WORLD_DIMENSIONS[1] - 1))
+
+        gate1_location = (random.randint(0, GRID_WORLD_DIMENSIONS[0] - 1), random.randint(0, GRID_WORLD_DIMENSIONS[1] - 1))
+        gate2_location = (random.randint(0, GRID_WORLD_DIMENSIONS[0] - 1), random.randint(0, GRID_WORLD_DIMENSIONS[1] - 1))
+        gate1_direction = random.choice(list(Direction))
+        gate2_direction = random.choice(list(Direction))
+
+        while gate1_direction == Direction.NONE:
+            gate1_direction = random.choice(list(Direction))
+        while gate2_direction == Direction.NONE:
+            gate2_direction = random.choice(list(Direction))
+
+        self.obstacle_locations = [obstacle_location]
+        self.gate_locations = [(gate1_location, gate1_direction), (gate2_location, gate2_direction)]
+         
+        print("Randomized with:")
+        print("Obstacle location:", obstacle_location)
+        print("Gate 1 location:", gate1_location)
+        print("Gate 1 direction:", gate1_direction)
+        print("Gate 2 location:", gate2_location)
+        print("Gate 2 direction:", gate2_direction)
 
     def print_grid(self):
         # print header
@@ -84,17 +111,17 @@ class Simulator:
 
             for c in range(GRID_WORLD_DIMENSIONS[1]):
                 if gate_bottom_state_list[c] == GateState.CLOSED:
-                    print('═══', end='')
+                    print('═══ ', end='')
                 elif gate_bottom_state_list[c] == GateState.OPEN:
-                    print('╬╬╬', end='')
+                    print('╬╬╬ ', end='')
                 else:
                     print('    ', end='')
 
             print()
 
     def check_gate(self, location, direction) -> GateState:
-        for gate_index in range(len(GATE_LOCATIONS)):
-            gate = GATE_LOCATIONS[gate_index]
+        for gate_index in range(len(self.gate_locations)):
+            gate = self.gate_locations[gate_index]
             if gate[0] == location and gate[1] == direction:
                 return self.gate_states[gate_index]
             # check if the gate is in the opposite direction
@@ -145,7 +172,7 @@ class Simulator:
         self.breadcrumbs[new_location[0]][new_location[1]] = True
 
         # determine if the gate should open or close
-        for gate_index in range(len(GATE_LOCATIONS)):
+        for gate_index in range(len(self.gate_locations)):
             if self.gate_states[gate_index] == GateState.OPEN:
                 if random.random() < GATE_PROBABILITY_CLOSE:
                     self.gate_states[gate_index] = GateState.CLOSED

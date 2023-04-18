@@ -40,20 +40,20 @@ class MDP:
         #     (agent_row = gate1_row & agent_col = (gate1_col - 1) & gate1_dir = left)
         # );
         up_gate1_blocked = simulator.gate_states[0] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[0][0] and GATE_LOCATIONS[0][1] == Direction.UP) or
-            (simulator.agent_location == (GATE_LOCATIONS[0][0][0] + 1, GATE_LOCATIONS[0][0][1]) and GATE_LOCATIONS[0][1] == Direction.DOWN)
+            (simulator.agent_location == simulator.gate_locations[0][0] and simulator.gate_locations[0][1] == Direction.UP) or
+            (simulator.agent_location == (simulator.gate_locations[0][0][0] + 1, simulator.gate_locations[0][0][1]) and simulator.gate_locations[0][1] == Direction.DOWN)
         )
         down_gate1_blocked = simulator.gate_states[0] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[0][0] and GATE_LOCATIONS[0][1] == Direction.DOWN) or
-            (simulator.agent_location == (GATE_LOCATIONS[0][0][0] - 1, GATE_LOCATIONS[0][0][1]) and GATE_LOCATIONS[0][1] == Direction.UP)
+            (simulator.agent_location == simulator.gate_locations[0][0] and simulator.gate_locations[0][1] == Direction.DOWN) or
+            (simulator.agent_location == (simulator.gate_locations[0][0][0] - 1, simulator.gate_locations[0][0][1]) and simulator.gate_locations[0][1] == Direction.UP)
         )
         left_gate1_blocked = simulator.gate_states[0] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[0][0] and GATE_LOCATIONS[0][1] == Direction.LEFT) or
-            (simulator.agent_location == (GATE_LOCATIONS[0][0][0], GATE_LOCATIONS[0][0][1] + 1) and GATE_LOCATIONS[0][1] == Direction.RIGHT)
+            (simulator.agent_location == simulator.gate_locations[0][0] and simulator.gate_locations[0][1] == Direction.LEFT) or
+            (simulator.agent_location == (simulator.gate_locations[0][0][0], simulator.gate_locations[0][0][1] + 1) and simulator.gate_locations[0][1] == Direction.RIGHT)
         )
         right_gate1_blocked = simulator.gate_states[0] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[0][0] and GATE_LOCATIONS[0][1] == Direction.RIGHT) or
-            (simulator.agent_location == (GATE_LOCATIONS[0][0][0], GATE_LOCATIONS[0][0][1] - 1) and GATE_LOCATIONS[0][1] == Direction.LEFT)
+            (simulator.agent_location == simulator.gate_locations[0][0] and simulator.gate_locations[0][1] == Direction.RIGHT) or
+            (simulator.agent_location == (simulator.gate_locations[0][0][0], simulator.gate_locations[0][0][1] - 1) and simulator.gate_locations[0][1] == Direction.LEFT)
         )
 
         # up_gate2_blocked := !gate2_open & (
@@ -74,20 +74,20 @@ class MDP:
         # );
 
         up_gate2_blocked = simulator.gate_states[1] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[1][0] and GATE_LOCATIONS[1][1] == Direction.UP) or
-            (simulator.agent_location == (GATE_LOCATIONS[1][0][0] + 1, GATE_LOCATIONS[1][0][1]) and GATE_LOCATIONS[1][1] == Direction.DOWN)
+            (simulator.agent_location == simulator.gate_locations[1][0] and simulator.gate_locations[1][1] == Direction.UP) or
+            (simulator.agent_location == (simulator.gate_locations[1][0][0] + 1, simulator.gate_locations[1][0][1]) and simulator.gate_locations[1][1] == Direction.DOWN)
         )
         down_gate2_blocked = simulator.gate_states[1] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[1][0] and GATE_LOCATIONS[1][1] == Direction.DOWN) or
-            (simulator.agent_location == (GATE_LOCATIONS[1][0][0] - 1, GATE_LOCATIONS[1][0][1]) and GATE_LOCATIONS[1][1] == Direction.UP)
+            (simulator.agent_location == simulator.gate_locations[1][0] and simulator.gate_locations[1][1] == Direction.DOWN) or
+            (simulator.agent_location == (simulator.gate_locations[1][0][0] - 1, simulator.gate_locations[1][0][1]) and simulator.gate_locations[1][1] == Direction.UP)
         )
         left_gate2_blocked = simulator.gate_states[1] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[1][0] and GATE_LOCATIONS[1][1] == Direction.LEFT) or
-            (simulator.agent_location == (GATE_LOCATIONS[1][0][0], GATE_LOCATIONS[1][0][1] + 1) and GATE_LOCATIONS[1][1] == Direction.RIGHT)
+            (simulator.agent_location == simulator.gate_locations[1][0] and simulator.gate_locations[1][1] == Direction.LEFT) or
+            (simulator.agent_location == (simulator.gate_locations[1][0][0], simulator.gate_locations[1][0][1] + 1) and simulator.gate_locations[1][1] == Direction.RIGHT)
         )
         right_gate2_blocked = simulator.gate_states[1] == GateState.CLOSED and (
-            (simulator.agent_location == GATE_LOCATIONS[1][0] and GATE_LOCATIONS[1][1] == Direction.RIGHT) or
-            (simulator.agent_location == (GATE_LOCATIONS[1][0][0], GATE_LOCATIONS[1][0][1] - 1) and GATE_LOCATIONS[1][1] == Direction.LEFT)
+            (simulator.agent_location == simulator.gate_locations[1][0] and simulator.gate_locations[1][1] == Direction.RIGHT) or
+            (simulator.agent_location == (simulator.gate_locations[1][0][0], simulator.gate_locations[1][0][1] - 1) and simulator.gate_locations[1][1] == Direction.LEFT)
         )
 
         # go_up := 
